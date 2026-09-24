@@ -1,138 +1,201 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Truck Burger - المنيو وإدارة الوجبات</title>
-  <style>
-    body { font-family: system-ui, -apple-system, sans-serif; background: #121212; color: #fff; margin: 0; padding: 20px; }
-    .container { max-width: 900px; margin: 0 auto; }
-    h1, h2 { text-align: center; color: #ffb703; }
-    
-    /* لوحة المالك */
-    .admin-card { background: #1e1e1e; padding: 20px; border-radius: 12px; border: 1px solid #ffb703; margin-bottom: 30px; box-shadow: 0 4px 15px rgba(255,183,3,0.1); }
-    .form-group { margin-bottom: 15px; }
-    label { display: block; margin-bottom: 5px; font-weight: bold; color: #ddd; }
-    input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #444; background: #2b2b2b; color: #fff; box-sizing: border-box; font-size: 1rem; }
-    .btn-add { background: #ffb703; color: #000; font-weight: bold; padding: 12px; border: none; border-radius: 8px; width: 100%; cursor: pointer; font-size: 1rem; transition: 0.2s; }
-    .btn-add:hover { background: #e0a100; }
-
-    /* عرض المنيو */
-    .menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px; margin-top: 20px; }
-    .meal-card { background: #1e1e1e; border-radius: 12px; overflow: hidden; border: 1px solid #333; text-align: center; padding-bottom: 15px; display: flex; flex-direction: column; justify: space-between; }
-    .meal-card img { width: 100%; height: 160px; object-fit: cover; }
-    .meal-title { font-size: 1.2rem; margin: 12px 0 5px 0; font-weight: bold; }
-    .meal-price { color: #2ec4b6; font-size: 1.2rem; font-weight: bold; margin-bottom: 10px; }
-    .btn-delete { background: #e63946; color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-size: 0.9rem; margin: 0 15px; }
-    .btn-delete:hover { background: #c1121f; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="page-title">Truck Burger - المطعم الإلكتروني</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 </head>
-<body>
+<body class="bg-gray-100 font-sans text-gray-800 pb-20">
 
-<div class="container">
-  <h1>Truck Burger 🍔</h1>
+    <!-- Navbar -->
+    <nav class="bg-red-600 text-white shadow-md sticky top-0 z-50">
+        <div class="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center">
+            <h1 id="brand-name" class="text-xl font-bold">🍔 Truck Burger</h1>
+            <div class="flex items-center gap-3">
+                <a href="#" class="text-sm bg-red-700 px-3 py-1 rounded hover:bg-red-800">الرئيسية</a>
+                <a href="#admin" class="text-sm bg-black/30 px-3 py-1 rounded hover:bg-black/50"><i class="fa-solid fa-lock"></i> الإدارة</a>
+            </div>
+        </div>
+    </nav>
 
-  <!-- لوحة المالك (تظهر فقط عند دخول رابط #admin) -->
-  <div id="admin-panel" class="admin-card" style="display: none;">
-    <h2>لوحة المالك: إضافة وجبة جديدة</h2>
-    <form id="add-meal-form">
-      <div class="form-group">
-        <label>اسم الوجبة</label>
-        <input type="text" id="meal-name" placeholder="مثال: برجر لحم دبل" required>
-      </div>
-      <div class="form-group">
-        <label>السعر (ريال)</label>
-        <input type="number" id="meal-price" placeholder="مثال: 2500" required>
-      </div>
-      <div class="form-group">
-        <label>رابط صورة الوجبة</label>
-        <input type="url" id="meal-image" placeholder="https://example.com/burger.jpg" required>
-      </div>
-      <button type="submit" class="btn-add">إضافة الوجبة للمنيو</button>
-    </form>
-  </div>
+    <!-- 1. صفحة الزبون (الموقع الرئيسي) -->
+    <main id="client-page" class="max-w-4xl mx-auto px-4 mt-6">
+        <!-- Hero Banner -->
+        <div class="bg-gradient-to-r from-red-500 to-amber-500 text-white rounded-2xl p-6 mb-8 text-center shadow-lg">
+            <h2 id="hero-title" class="text-3xl font-extrabold mb-2">أهلاً بك في Truck Burger</h2>
+            <p id="hero-sub" class="text-lg opacity-90">أطيب الوجبات والبرجر الطازج يصلك أينما كنت!</p>
+        </div>
 
-  <!-- قائمة العرض للزبائن -->
-  <h2>قائمة الطعام</h2>
-  <div class="menu-grid" id="menu-container">
-    <p style="text-align:center;">جاري تحميل المنيو...</p>
-  </div>
-</div>
+        <!-- قائمة المنتجات -->
+        <h3 class="text-xl font-bold mb-4 text-gray-700 border-r-4 border-red-600 pr-2">قائمة الطعام</h3>
+        <div id="products-list" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <p class="text-gray-500 col-span-2 text-center py-8">جاري تحميل الوجبات...</p>
+        </div>
+    </main>
 
-<!-- ربط Firebase -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-  import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    <!-- 2. صفحة تسجيل دخول الأدمن -->
+    <div id="admin-login-page" class="hidden max-w-md mx-auto my-12 p-6 bg-white rounded-xl shadow-md">
+        <h2 class="text-2xl font-bold text-center mb-6 text-red-600">تسجيل دخول المالك</h2>
+        <form id="login-form" class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium mb-1">البريد الإلكتروني</label>
+                <input type="email" id="login-email" required class="w-full p-2 border rounded focus:ring-2 focus:ring-red-500 outline-none">
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-1">كلمة المرور</label>
+                <input type="password" id="login-password" required class="w-full p-2 border rounded focus:ring-2 focus:ring-red-500 outline-none">
+            </div>
+            <button type="submit" class="w-full bg-red-600 text-white py-2 rounded font-bold hover:bg-red-700">دخول</button>
+        </form>
+    </div>
 
-  // بيانات مشروعك الفعالية من الصورة
-  const firebaseConfig = {
-    apiKey: "AIzaSyBGCoYbgBZ4aRihP29_n",
-    authDomain: "truck-burger-3d190.firebaseapp.com",
-    projectId: "truck-burger-3d190",
-    storageBucket: "truck-burger-3d190.appspot.com",
-    messagingSenderId: "184670564449",
-    appId: "1:184670564449:web:1cf68b2b9c2a4b9416ba20"
-  };
+    <!-- 3. لوحة تحكم المالك (Admin Dashboard) -->
+    <div id="admin-dashboard-page" class="hidden max-w-4xl mx-auto px-4 my-8">
+        <div class="flex justify-between items-center mb-6 bg-white p-4 rounded-xl shadow">
+            <h2 class="text-2xl font-bold text-gray-800">لوحة إدارة الموقع</h2>
+            <button id="logout-btn" class="bg-gray-200 text-gray-700 px-4 py-2 rounded hover:bg-gray-300">تسجيل خروج</button>
+        </div>
 
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-  const mealsRef = collection(db, "menu");
+        <!-- قسم تعديل نصوص الصفحة -->
+        <div class="bg-white rounded-xl p-6 shadow mb-8">
+            <h3 class="text-lg font-bold mb-4 text-red-600 border-b pb-2"><i class="fa-solid fa-pen-to-square"></i> تعديل نصوص وكتابة الموقع</h3>
+            <form id="site-settings-form" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-1">اسم المطعم (في الهيدر)</label>
+                    <input type="text" id="setting-brand" class="w-full p-2 border rounded">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">العنوان الرئيسي (Hero Title)</label>
+                    <input type="text" id="setting-title" class="w-full p-2 border rounded">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">الوصف الفرعي (Hero Subtitle)</label>
+                    <input type="text" id="setting-sub" class="w-full p-2 border rounded">
+                </div>
+                <button type="submit" class="bg-green-600 text-white px-6 py-2 rounded font-bold hover:bg-green-700">حفظ التغييرات للنصوص</button>
+            </form>
+        </div>
 
-  // إظهار لوحة التحكم إذا كان الرابط يحتوي على #admin
-  const isAdmin = window.location.hash === "#admin";
-  if (isAdmin) {
-    document.getElementById("admin-panel").style.display = "block";
-  }
+        <!-- قسم إضافة وجبة جديدة -->
+        <div class="bg-white rounded-xl p-6 shadow mb-8">
+            <h3 class="text-lg font-bold mb-4 text-red-600 border-b pb-2"><i class="fa-solid fa-plus"></i> إضافة وجبة جديدة</h3>
+            <form id="add-product-form" class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <input type="text" id="prod-name" placeholder="اسم الوجبة" required class="p-2 border rounded">
+                    <input type="number" id="prod-price" placeholder="السعر" required class="p-2 border rounded">
+                </div>
+                <input type="url" id="prod-image" placeholder="رابط صورة الوجبة (URL)" required class="w-full p-2 border rounded">
+                <textarea id="prod-desc" placeholder="وصف الوجبة..." class="w-full p-2 border rounded h-20"></textarea>
+                <button type="submit" class="bg-red-600 text-white px-6 py-2 rounded font-bold hover:bg-red-700">إضافة الوجبة</button>
+            </form>
+        </div>
+    </div>
 
-  // 1. إضافة وجبة جديدة
-  document.getElementById("add-meal-form").addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const name = document.getElementById("meal-name").value;
-    const price = Number(document.getElementById("meal-price").value);
-    const imageUrl = document.getElementById("meal-image").value;
+    <!-- Firebase Script Logic -->
+    <script>
+        // إعدادات Firebase الخاصة بك
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
 
-    try {
-      await addDoc(mealsRef, { name, price, imageUrl, createdAt: new Date() });
-      document.getElementById("add-meal-form").reset();
-      alert("تمت إضافة الوجبة بنجاح!");
-    } catch (err) {
-      alert("حدث خطأ أثناء الإضافة: " + err.message);
-    }
-  });
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
 
-  // 2. جلب المنيو وعرضها تلقائياً
-  onSnapshot(mealsRef, (snapshot) => {
-    const container = document.getElementById("menu-container");
-    container.innerHTML = "";
+        // التبديل بين الصفحات حسب الـ Hash
+        function handleRouting() {
+            const hash = window.location.hash;
+            const clientPage = document.getElementById('client-page');
+            const loginPage = document.getElementById('admin-login-page');
+            const dashboardPage = document.getElementById('admin-dashboard-page');
 
-    if (snapshot.empty) {
-      container.innerHTML = "<p style='text-align:center;'>لا توجد وجبات في المنيو حالياً.</p>";
-      return;
-    }
+            // إخفاء الكل أولاً
+            clientPage.classList.add('hidden');
+            loginPage.classList.add('hidden');
+            dashboardPage.classList.add('hidden');
 
-    snapshot.forEach((docSnap) => {
-      const meal = docSnap.data();
-      const id = docSnap.id;
+            if (hash === '#admin') {
+                auth.onAuthStateChanged(user => {
+                    if (user) {
+                        dashboardPage.classList.remove('hidden');
+                        loadAdminSettings();
+                    } else {
+                        loginPage.classList.remove('hidden');
+                    }
+                });
+            } else {
+                clientPage.classList.remove('hidden');
+            }
+        }
 
-      const card = document.createElement("div");
-      card.className = "meal-card";
-      card.innerHTML = `
-        <img src="${meal.imageUrl}" alt="${meal.name}" onerror="this.src='https://via.placeholder.com/240x160?text=No+Image'">
-        <div class="meal-title">${meal.name}</div>
-        <div class="meal-price">${meal.price} ريال</div>
-        ${isAdmin ? `<button class="btn-delete" onclick="deleteMeal('${id}')">حذف الوجبة</button>` : ''}
-      `;
-      container.appendChild(card);
-    });
-  });
+        window.addEventListener('hashchange', handleRouting);
+        window.addEventListener('load', handleRouting);
 
-  // 3. حذف الوجبة
-  window.deleteMeal = async (id) => {
-    if (confirm("هل تريد حذف هذه الوجبة نهائياً؟")) {
-      await deleteDoc(doc(db, "menu", id));
-    }
-  };
-</script>
+        // تسجيل الدخول
+        document.getElementById('login-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const pass = document.getElementById('login-password').value;
+            auth.signInWithEmailAndPassword(email, pass)
+                .then(() => handleRouting())
+                .catch(err => alert("خطأ في تسجيل الدخول: " + err.message));
+        });
 
+        // تسجيل الخروج
+        document.getElementById('logout-btn').addEventListener('click', () => {
+            auth.signOut().then(() => {
+                window.location.hash = '';
+            });
+        });
+
+        // جلب وحفظ إعدادات النصوص
+        function loadSiteContent() {
+            db.collection('settings').doc('content').get().then(doc => {
+                if(doc.exists) {
+                    const data = doc.data();
+                    if(data.brand) document.getElementById('brand-name').innerText = data.brand;
+                    if(data.title) document.getElementById('hero-title').innerText = data.title;
+                    if(data.sub) document.getElementById('hero-sub').innerText = data.sub;
+                }
+            });
+        }
+        loadSiteContent();
+
+        function loadAdminSettings() {
+            db.collection('settings').doc('content').get().then(doc => {
+                if(doc.exists) {
+                    const data = doc.data();
+                    document.getElementById('setting-brand').value = data.brand || '';
+                    document.getElementById('setting-title').value = data.title || '';
+                    document.getElementById('setting-sub').value = data.sub || '';
+                }
+            });
+        }
+
+        document.getElementById('site-settings-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            db.collection('settings').doc('content').set({
+                brand: document.getElementById('setting-brand').value,
+                title: document.getElementById('setting-title').value,
+                sub: document.getElementById('setting-sub').value
+            }).then(() => {
+                alert('تم حفظ نصوص الموقع بنجاح!');
+                loadSiteContent();
+            });
+        });
+    </script>
 </body>
 </html>
