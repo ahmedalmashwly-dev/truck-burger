@@ -3,72 +3,54 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Truck Burger - نظام الطلبات الفوري</title>
+  <title>Truck Burger - المنيو والطلبات</title>
   <style>
     body { font-family: system-ui, sans-serif; background: #121212; color: #fff; margin: 20px; }
     .container { max-width: 800px; margin: 0 auto; }
     .card { background: #1e1e1e; padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #333; }
-    input, select, button { width: 100%; padding: 10px; margin-top: 8px; border-radius: 6px; border: 1px solid #444; background: #2a2a2a; color: #fff; box-sizing: border-box; }
-    button { background: #e63946; font-weight: bold; cursor: pointer; border: none; margin-top: 15px; }
-    button:hover { background: #d62828; }
-    
-    /* تنسيق جدول طلبات المالك */
-    .order-item { background: #252525; border-right: 4px solid #e63946; padding: 15px; margin-bottom: 12px; border-radius: 6px; }
-    .order-item.done { border-right-color: #2ec4b6; opacity: 0.7; }
-    .status-badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 0.85rem; font-weight: bold; }
-    .pending { background: #ffb703; color: #000; }
-    .completed { background: #2ec4b6; color: #000; }
+    input, button { width: 100%; padding: 10px; margin-top: 8px; border-radius: 6px; border: 1px solid #444; background: #2a2a2a; color: #fff; box-sizing: border-box; }
+    button { background: #ffb703; color: #000; font-weight: bold; cursor: pointer; border: none; margin-top: 15px; }
+    button:hover { background: #e0a100; }
+    .order-item { background: #252525; border-right: 4px solid #ffb703; padding: 15px; margin-bottom: 12px; border-radius: 6px; }
   </style>
 </head>
 <body>
 
 <div class="container">
+  <h1>Truck Burger 🍔</h1>
 
-  <!-- ================= قسم الزبون (إرسال طلب) ================= -->
+  <!-- قسم الزبون -->
   <div id="customer-section" class="card">
-    <h2>طلب جديد 🍔</h2>
+    <h2>طلب جديد</h2>
     <form id="order-form">
       <label>الوجبة المطلوبة:</label>
-      <input type="text" id="order-item-name" placeholder="مثال: برجر دبل تشيز + بطاطس" required>
-      
+      <input type="text" id="order-item-name" placeholder="مثال: برجر لحم دبل" required>
       <label>اسمك:</label>
-      <input type="text" id="customer-name" placeholder="اسم الزبون" required>
-      
+      <input type="text" id="customer-name" placeholder="اسمك الكامل" required>
       <label>رقم الجوال:</label>
-      <input type="tel" id="customer-phone" placeholder="77XXXXXXX" required>
-
-      <label>العنوان / ملاحظات التوصيل:</label>
-      <input type="text" id="customer-address" placeholder="اسم الشارع أو المنطقة" required>
-      
-      <button type="submit">إرسال الطلب الآن</button>
+      <input type="tel" id="customer-phone" placeholder="77XXXXXXXX" required>
+      <button type="submit">إرسال الطلب</button>
     </form>
   </div>
 
-  <!-- ================= قسم المالك (لوحة الطلبات الحية) ================= -->
+  <!-- قسم المالك (#admin) -->
   <div id="admin-orders-section" class="card" style="display: none;">
     <h2>📥 الطلبات الواردة (تحديث فوري)</h2>
-    <div id="orders-list">
-      <p>جاري انتظار الطلبات...</p>
-    </div>
+    <div id="orders-list">جاري تحميل الطلبات...</div>
   </div>
-
 </div>
-
-<!-- صوت تنبيه عند وصول طلب جديد -->
-<audio id="order-sound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto"></audio>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-  import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+  import { getFirestore, collection, addDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-  // 🔴 ضع إعدادات Firebase الخاصة بمشروعك هنا
   const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_PROJECT.firebaseapp.com",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_PROJECT.appspot.com",
-    messagingSenderId: "YOUR_SENDER_ID",
-    appId: "YOUR_APP_ID"
+    apiKey: "AIzaSyBGCoYbgBZ4aRihP29_n",
+    authDomain: "truck-burger-3d190.firebaseapp.com",
+    projectId: "truck-burger-3d190",
+    storageBucket: "truck-burger-3d190.appspot.com",
+    messagingSenderId: "184670564449",
+    appId: "1:184670564449:web:1cf68b2b9c2a4b9416ba20"
   };
 
   const app = initializeApp(firebaseConfig);
@@ -76,93 +58,49 @@
   const ordersCollection = collection(db, "orders");
 
   const isAdmin = window.location.hash === "#admin";
-
-  // إظهار لوحة المالك إذا كان الرابط يحتوي على #admin
   if (isAdmin) {
     document.getElementById("admin-orders-section").style.display = "block";
   }
 
-  // 1. إرسال الطلب من الزبون إلى Firebase
-  const orderForm = document.getElementById("order-form");
-  orderForm.addEventListener("submit", async (e) => {
+  document.getElementById("order-form").addEventListener("submit", async (e) => {
     e.preventDefault();
-    
-    const newOrder = {
-      item: document.getElementById("order-item-name").value,
-      customer: document.getElementById("customer-name").value,
-      phone: document.getElementById("customer-phone").value,
-      address: document.getElementById("customer-address").value,
-      status: "قيد الانتظار",
-      createdAt: new Date()
-    };
-
     try {
-      await addDoc(ordersCollection, newOrder);
-      alert("تم إرسال طلبك بنجاح! سيتم التواصل معك قريباً.");
-      orderForm.reset();
+      await addDoc(ordersCollection, {
+        item: document.getElementById("order-item-name").value,
+        customer: document.getElementById("customer-name").value,
+        phone: document.getElementById("customer-phone").value,
+        createdAt: new Date()
+      });
+      alert("تم إرسال طلبك بنجاح!");
+      document.getElementById("order-form").reset();
     } catch (err) {
-      alert("حدث خطأ أثناء إرسال الطلب: " + err.message);
+      alert("خطأ: " + err.message);
     }
   });
 
-  // 2. الاستماع الفوري للطلبات في لوحة المالك (Real-time Listener)
   if (isAdmin) {
-    let isFirstLoad = true;
     const q = query(ordersCollection, orderBy("createdAt", "desc"));
-
     onSnapshot(q, (snapshot) => {
       const listContainer = document.getElementById("orders-list");
       listContainer.innerHTML = "";
-
       if (snapshot.empty) {
         listContainer.innerHTML = "<p>لا توجد طلبات حالياً.</p>";
         return;
       }
-
-      // تشغيل صوت تنبيه عند وصول طلب جديد بعد التحميل الأول
-      if (!isFirstLoad && snapshot.docChanges().some(change => change.type === "added")) {
-        const sound = document.getElementById("order-sound");
-        sound.play().catch(() => console.log("الصوت يتطلب تفاعل مع الصفحة أولاً"));
-      }
-      isFirstLoad = false;
-
       snapshot.forEach((docSnap) => {
         const data = docSnap.data();
-        const id = docSnap.id;
-        const dateStr = data.createdAt ? new Date(data.createdAt.seconds * 1000).toLocaleTimeString('ar-YE') : '';
-
         const itemDiv = document.createElement("div");
-        itemDiv.className = `order-item ${data.status === 'مكتمل' ? 'done' : ''}`;
+        itemDiv.className = "order-item";
         itemDiv.innerHTML = `
           <div><strong>الوجبة:</strong> ${data.item}</div>
-          <div><strong>الزبون:</strong> ${data.customer} (${data.phone})</div>
-          <div><strong>العنوان:</strong> ${data.address}</div>
-          <div><small>الوقت: ${dateStr}</small></div>
-          <div style="margin-top: 8px;">
-            الحالة: <span class="status-badge ${data.status === 'مكتمل' ? 'completed' : 'pending'}">${data.status}</span>
-          </div>
-          <div style="display: flex; gap: 10px; margin-top: 10px;">
-            <button style="background: #2ec4b6;" onclick="toggleStatus('${id}', '${data.status}')">تغيير الحالة</button>
-            <button style="background: #a80000;" onclick="deleteOrder('${id}')">حذف</button>
-          </div>
+          <div><strong>الزبون:</strong> ${data.customer} - ${data.phone}</div>
         `;
         listContainer.appendChild(itemDiv);
       });
+    }, (error) => {
+      console.error("Firestore Error:", error);
     });
   }
-
-  // 3. دالة تغيير حالة الطلب (مكتمل / قيد الانتظار)
-  window.toggleStatus = async (id, currentStatus) => {
-    const newStatus = currentStatus === "قيد الانتظار" ? "مكتمل" : "قيد الانتظار";
-    await updateDoc(doc(db, "orders", id), { status: newStatus });
-  };
-
-  // 4. دالة حذف الطلب
-  window.deleteOrder = async (id) => {
-    if (confirm("هل تريد حذف هذا الطلب؟")) {
-      await deleteDoc(doc(db, "orders", id));
-    }
-  };
 </script>
 
 </body>
