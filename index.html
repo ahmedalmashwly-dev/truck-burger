@@ -1,201 +1,169 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title id="page-title">Truck Burger - المطعم الإلكتروني</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Firebase SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Truck Burger - نظام الطلبات الفوري</title>
+  <style>
+    body { font-family: system-ui, sans-serif; background: #121212; color: #fff; margin: 20px; }
+    .container { max-width: 800px; margin: 0 auto; }
+    .card { background: #1e1e1e; padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #333; }
+    input, select, button { width: 100%; padding: 10px; margin-top: 8px; border-radius: 6px; border: 1px solid #444; background: #2a2a2a; color: #fff; box-sizing: border-box; }
+    button { background: #e63946; font-weight: bold; cursor: pointer; border: none; margin-top: 15px; }
+    button:hover { background: #d62828; }
+    
+    /* تنسيق جدول طلبات المالك */
+    .order-item { background: #252525; border-right: 4px solid #e63946; padding: 15px; margin-bottom: 12px; border-radius: 6px; }
+    .order-item.done { border-right-color: #2ec4b6; opacity: 0.7; }
+    .status-badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 0.85rem; font-weight: bold; }
+    .pending { background: #ffb703; color: #000; }
+    .completed { background: #2ec4b6; color: #000; }
+  </style>
 </head>
-<body class="bg-gray-100 font-sans text-gray-800 pb-20">
+<body>
 
-    <!-- Navbar -->
-    <nav class="bg-red-600 text-white shadow-md sticky top-0 z-50">
-        <div class="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center">
-            <h1 id="brand-name" class="text-xl font-bold">🍔 Truck Burger</h1>
-            <div class="flex items-center gap-3">
-                <a href="#" class="text-sm bg-red-700 px-3 py-1 rounded hover:bg-red-800">الرئيسية</a>
-                <a href="#admin" class="text-sm bg-black/30 px-3 py-1 rounded hover:bg-black/50"><i class="fa-solid fa-lock"></i> الإدارة</a>
-            </div>
-        </div>
-    </nav>
+<div class="container">
 
-    <!-- 1. صفحة الزبون (الموقع الرئيسي) -->
-    <main id="client-page" class="max-w-4xl mx-auto px-4 mt-6">
-        <!-- Hero Banner -->
-        <div class="bg-gradient-to-r from-red-500 to-amber-500 text-white rounded-2xl p-6 mb-8 text-center shadow-lg">
-            <h2 id="hero-title" class="text-3xl font-extrabold mb-2">أهلاً بك في Truck Burger</h2>
-            <p id="hero-sub" class="text-lg opacity-90">أطيب الوجبات والبرجر الطازج يصلك أينما كنت!</p>
-        </div>
+  <!-- ================= قسم الزبون (إرسال طلب) ================= -->
+  <div id="customer-section" class="card">
+    <h2>طلب جديد 🍔</h2>
+    <form id="order-form">
+      <label>الوجبة المطلوبة:</label>
+      <input type="text" id="order-item-name" placeholder="مثال: برجر دبل تشيز + بطاطس" required>
+      
+      <label>اسمك:</label>
+      <input type="text" id="customer-name" placeholder="اسم الزبون" required>
+      
+      <label>رقم الجوال:</label>
+      <input type="tel" id="customer-phone" placeholder="77XXXXXXX" required>
 
-        <!-- قائمة المنتجات -->
-        <h3 class="text-xl font-bold mb-4 text-gray-700 border-r-4 border-red-600 pr-2">قائمة الطعام</h3>
-        <div id="products-list" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <p class="text-gray-500 col-span-2 text-center py-8">جاري تحميل الوجبات...</p>
-        </div>
-    </main>
+      <label>العنوان / ملاحظات التوصيل:</label>
+      <input type="text" id="customer-address" placeholder="اسم الشارع أو المنطقة" required>
+      
+      <button type="submit">إرسال الطلب الآن</button>
+    </form>
+  </div>
 
-    <!-- 2. صفحة تسجيل دخول الأدمن -->
-    <div id="admin-login-page" class="hidden max-w-md mx-auto my-12 p-6 bg-white rounded-xl shadow-md">
-        <h2 class="text-2xl font-bold text-center mb-6 text-red-600">تسجيل دخول المالك</h2>
-        <form id="login-form" class="space-y-4">
-            <div>
-                <label class="block text-sm font-medium mb-1">البريد الإلكتروني</label>
-                <input type="email" id="login-email" required class="w-full p-2 border rounded focus:ring-2 focus:ring-red-500 outline-none">
-            </div>
-            <div>
-                <label class="block text-sm font-medium mb-1">كلمة المرور</label>
-                <input type="password" id="login-password" required class="w-full p-2 border rounded focus:ring-2 focus:ring-red-500 outline-none">
-            </div>
-            <button type="submit" class="w-full bg-red-600 text-white py-2 rounded font-bold hover:bg-red-700">دخول</button>
-        </form>
+  <!-- ================= قسم المالك (لوحة الطلبات الحية) ================= -->
+  <div id="admin-orders-section" class="card" style="display: none;">
+    <h2>📥 الطلبات الواردة (تحديث فوري)</h2>
+    <div id="orders-list">
+      <p>جاري انتظار الطلبات...</p>
     </div>
+  </div>
 
-    <!-- 3. لوحة تحكم المالك (Admin Dashboard) -->
-    <div id="admin-dashboard-page" class="hidden max-w-4xl mx-auto px-4 my-8">
-        <div class="flex justify-between items-center mb-6 bg-white p-4 rounded-xl shadow">
-            <h2 class="text-2xl font-bold text-gray-800">لوحة إدارة الموقع</h2>
-            <button id="logout-btn" class="bg-gray-200 text-gray-700 px-4 py-2 rounded hover:bg-gray-300">تسجيل خروج</button>
-        </div>
+</div>
 
-        <!-- قسم تعديل نصوص الصفحة -->
-        <div class="bg-white rounded-xl p-6 shadow mb-8">
-            <h3 class="text-lg font-bold mb-4 text-red-600 border-b pb-2"><i class="fa-solid fa-pen-to-square"></i> تعديل نصوص وكتابة الموقع</h3>
-            <form id="site-settings-form" class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium mb-1">اسم المطعم (في الهيدر)</label>
-                    <input type="text" id="setting-brand" class="w-full p-2 border rounded">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium mb-1">العنوان الرئيسي (Hero Title)</label>
-                    <input type="text" id="setting-title" class="w-full p-2 border rounded">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium mb-1">الوصف الفرعي (Hero Subtitle)</label>
-                    <input type="text" id="setting-sub" class="w-full p-2 border rounded">
-                </div>
-                <button type="submit" class="bg-green-600 text-white px-6 py-2 rounded font-bold hover:bg-green-700">حفظ التغييرات للنصوص</button>
-            </form>
-        </div>
+<!-- صوت تنبيه عند وصول طلب جديد -->
+<audio id="order-sound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto"></audio>
 
-        <!-- قسم إضافة وجبة جديدة -->
-        <div class="bg-white rounded-xl p-6 shadow mb-8">
-            <h3 class="text-lg font-bold mb-4 text-red-600 border-b pb-2"><i class="fa-solid fa-plus"></i> إضافة وجبة جديدة</h3>
-            <form id="add-product-form" class="space-y-4">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <input type="text" id="prod-name" placeholder="اسم الوجبة" required class="p-2 border rounded">
-                    <input type="number" id="prod-price" placeholder="السعر" required class="p-2 border rounded">
-                </div>
-                <input type="url" id="prod-image" placeholder="رابط صورة الوجبة (URL)" required class="w-full p-2 border rounded">
-                <textarea id="prod-desc" placeholder="وصف الوجبة..." class="w-full p-2 border rounded h-20"></textarea>
-                <button type="submit" class="bg-red-600 text-white px-6 py-2 rounded font-bold hover:bg-red-700">إضافة الوجبة</button>
-            </form>
-        </div>
-    </div>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    <!-- Firebase Script Logic -->
-    <script>
-        // إعدادات Firebase الخاصة بك
-        const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_AUTH_DOMAIN",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_STORAGE_BUCKET",
-            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-            appId: "YOUR_APP_ID"
-        };
+  // 🔴 ضع إعدادات Firebase الخاصة بمشروعك هنا
+  const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_PROJECT.firebaseapp.com",
+    projectId: "YOUR_PROJECT_ID",
+    storageBucket: "YOUR_PROJECT.appspot.com",
+    messagingSenderId: "YOUR_SENDER_ID",
+    appId: "YOUR_APP_ID"
+  };
 
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const ordersCollection = collection(db, "orders");
 
-        // التبديل بين الصفحات حسب الـ Hash
-        function handleRouting() {
-            const hash = window.location.hash;
-            const clientPage = document.getElementById('client-page');
-            const loginPage = document.getElementById('admin-login-page');
-            const dashboardPage = document.getElementById('admin-dashboard-page');
+  const isAdmin = window.location.hash === "#admin";
 
-            // إخفاء الكل أولاً
-            clientPage.classList.add('hidden');
-            loginPage.classList.add('hidden');
-            dashboardPage.classList.add('hidden');
+  // إظهار لوحة المالك إذا كان الرابط يحتوي على #admin
+  if (isAdmin) {
+    document.getElementById("admin-orders-section").style.display = "block";
+  }
 
-            if (hash === '#admin') {
-                auth.onAuthStateChanged(user => {
-                    if (user) {
-                        dashboardPage.classList.remove('hidden');
-                        loadAdminSettings();
-                    } else {
-                        loginPage.classList.remove('hidden');
-                    }
-                });
-            } else {
-                clientPage.classList.remove('hidden');
-            }
-        }
+  // 1. إرسال الطلب من الزبون إلى Firebase
+  const orderForm = document.getElementById("order-form");
+  orderForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    
+    const newOrder = {
+      item: document.getElementById("order-item-name").value,
+      customer: document.getElementById("customer-name").value,
+      phone: document.getElementById("customer-phone").value,
+      address: document.getElementById("customer-address").value,
+      status: "قيد الانتظار",
+      createdAt: new Date()
+    };
 
-        window.addEventListener('hashchange', handleRouting);
-        window.addEventListener('load', handleRouting);
+    try {
+      await addDoc(ordersCollection, newOrder);
+      alert("تم إرسال طلبك بنجاح! سيتم التواصل معك قريباً.");
+      orderForm.reset();
+    } catch (err) {
+      alert("حدث خطأ أثناء إرسال الطلب: " + err.message);
+    }
+  });
 
-        // تسجيل الدخول
-        document.getElementById('login-form').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const email = document.getElementById('login-email').value;
-            const pass = document.getElementById('login-password').value;
-            auth.signInWithEmailAndPassword(email, pass)
-                .then(() => handleRouting())
-                .catch(err => alert("خطأ في تسجيل الدخول: " + err.message));
-        });
+  // 2. الاستماع الفوري للطلبات في لوحة المالك (Real-time Listener)
+  if (isAdmin) {
+    let isFirstLoad = true;
+    const q = query(ordersCollection, orderBy("createdAt", "desc"));
 
-        // تسجيل الخروج
-        document.getElementById('logout-btn').addEventListener('click', () => {
-            auth.signOut().then(() => {
-                window.location.hash = '';
-            });
-        });
+    onSnapshot(q, (snapshot) => {
+      const listContainer = document.getElementById("orders-list");
+      listContainer.innerHTML = "";
 
-        // جلب وحفظ إعدادات النصوص
-        function loadSiteContent() {
-            db.collection('settings').doc('content').get().then(doc => {
-                if(doc.exists) {
-                    const data = doc.data();
-                    if(data.brand) document.getElementById('brand-name').innerText = data.brand;
-                    if(data.title) document.getElementById('hero-title').innerText = data.title;
-                    if(data.sub) document.getElementById('hero-sub').innerText = data.sub;
-                }
-            });
-        }
-        loadSiteContent();
+      if (snapshot.empty) {
+        listContainer.innerHTML = "<p>لا توجد طلبات حالياً.</p>";
+        return;
+      }
 
-        function loadAdminSettings() {
-            db.collection('settings').doc('content').get().then(doc => {
-                if(doc.exists) {
-                    const data = doc.data();
-                    document.getElementById('setting-brand').value = data.brand || '';
-                    document.getElementById('setting-title').value = data.title || '';
-                    document.getElementById('setting-sub').value = data.sub || '';
-                }
-            });
-        }
+      // تشغيل صوت تنبيه عند وصول طلب جديد بعد التحميل الأول
+      if (!isFirstLoad && snapshot.docChanges().some(change => change.type === "added")) {
+        const sound = document.getElementById("order-sound");
+        sound.play().catch(() => console.log("الصوت يتطلب تفاعل مع الصفحة أولاً"));
+      }
+      isFirstLoad = false;
 
-        document.getElementById('site-settings-form').addEventListener('submit', (e) => {
-            e.preventDefault();
-            db.collection('settings').doc('content').set({
-                brand: document.getElementById('setting-brand').value,
-                title: document.getElementById('setting-title').value,
-                sub: document.getElementById('setting-sub').value
-            }).then(() => {
-                alert('تم حفظ نصوص الموقع بنجاح!');
-                loadSiteContent();
-            });
-        });
-    </script>
+      snapshot.forEach((docSnap) => {
+        const data = docSnap.data();
+        const id = docSnap.id;
+        const dateStr = data.createdAt ? new Date(data.createdAt.seconds * 1000).toLocaleTimeString('ar-YE') : '';
+
+        const itemDiv = document.createElement("div");
+        itemDiv.className = `order-item ${data.status === 'مكتمل' ? 'done' : ''}`;
+        itemDiv.innerHTML = `
+          <div><strong>الوجبة:</strong> ${data.item}</div>
+          <div><strong>الزبون:</strong> ${data.customer} (${data.phone})</div>
+          <div><strong>العنوان:</strong> ${data.address}</div>
+          <div><small>الوقت: ${dateStr}</small></div>
+          <div style="margin-top: 8px;">
+            الحالة: <span class="status-badge ${data.status === 'مكتمل' ? 'completed' : 'pending'}">${data.status}</span>
+          </div>
+          <div style="display: flex; gap: 10px; margin-top: 10px;">
+            <button style="background: #2ec4b6;" onclick="toggleStatus('${id}', '${data.status}')">تغيير الحالة</button>
+            <button style="background: #a80000;" onclick="deleteOrder('${id}')">حذف</button>
+          </div>
+        `;
+        listContainer.appendChild(itemDiv);
+      });
+    });
+  }
+
+  // 3. دالة تغيير حالة الطلب (مكتمل / قيد الانتظار)
+  window.toggleStatus = async (id, currentStatus) => {
+    const newStatus = currentStatus === "قيد الانتظار" ? "مكتمل" : "قيد الانتظار";
+    await updateDoc(doc(db, "orders", id), { status: newStatus });
+  };
+
+  // 4. دالة حذف الطلب
+  window.deleteOrder = async (id) => {
+    if (confirm("هل تريد حذف هذا الطلب؟")) {
+      await deleteDoc(doc(db, "orders", id));
+    }
+  };
+</script>
+
 </body>
 </html>
