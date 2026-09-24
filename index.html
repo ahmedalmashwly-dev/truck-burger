@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>تراك برجر - Truck Burger</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=Readex+Pro:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:light;--bg:#fffdf9;--ink:#2b1c10;--mute:#7b6a5b;--or:#ff7a1a;--or2:#ff9f4a;--soft:#fff1e3;--line:#f3e1cf;--sh:0 10px 30px rgba(255,122,26,.12)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'IBM Plex Sans Arabic',Tahoma,sans-serif;line-height:1.7;background-image:radial-gradient(600px 400px at 100% 0,#ffe6cc,transparent);background-repeat:no-repeat}
+button{font:inherit;cursor:pointer}
+h1,h2,h3,.logo{font-family:'Readex Pro','IBM Plex Sans Arabic',sans-serif}
+.wrap{max-width:1040px;margin:auto;padding:0 20px}
+header{display:flex;justify-content:space-between;align-items:center;padding:16px 0}
+.logo{font-weight:700;font-size:1.35rem}
+.pill{background:#fff;border:1px solid var(--line);border-radius:99px;padding:8px 20px;font-weight:600;box-shadow:var(--sh)}
+.hero{padding:26px 0 40px}
+.hero h1{font-size:clamp(2.2rem,7vw,4rem);line-height:1.25;margin:0 0 12px}
+.hero h1 em{font-style:normal;color:var(--or)}
+.hero p{color:var(--mute);font-size:1.1rem;max-width:32em}
+.cta{display:inline-block;background:linear-gradient(135deg,var(--or),var(--or2));color:#fff;text-decoration:none;border:0;border-radius:14px;padding:13px 32px;font-weight:600;font-size:1.05rem;box-shadow:0 10px 24px rgba(255,122,26,.35)}
+.tabs{display:flex;gap:8px;overflow-x:auto;padding:8px 0 16px}
+.tabs button{flex:none;background:#fff;border:1px solid var(--line);border-radius:99px;padding:6px 20px}
+.tabs button[aria-pressed=true]{background:var(--or);color:#fff;border-color:var(--or)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:18px}
+.card{background:#fff;border:1px solid var(--line);border-radius:24px;padding:18px;box-shadow:var(--sh);display:flex;flex-direction:column;gap:6px}
+.card h3{margin:0;font-size:1.15rem}.card p{margin:0;color:var(--mute);font-size:.93rem;flex:1}
+.row{display:flex;justify-content:space-between;align-items:center;margin-top:8px;gap:8px}
+.price{font-weight:600;color:var(--or)}
+.add{background:var(--soft);color:#c2570a;border:1px solid var(--line);border-radius:12px;padding:6px 20px;font-weight:600}
+.qty{display:flex;align-items:center;gap:10px}
+.qty button{width:32px;height:32px;border-radius:50%;border:1px solid var(--line);background:var(--soft);color:#c2570a;font-weight:700}
+.bar{position:fixed;inset-inline:0;bottom:0;padding:12px 16px;display:none}
+.bar.on{display:block}
+.bar button{width:100%;max-width:600px;display:flex;justify-content:space-between;margin:auto;background:linear-gradient(135deg,var(--or),var(--or2));color:#fff;border:0;border-radius:18px;padding:14px 22px;font-weight:600;box-shadow:0 12px 30px rgba(255,122,26,.4)}
+dialog{width:min(560px,94vw);max-height:90vh;border:0;border-radius:26px;padding:22px;box-shadow:0 30px 80px rgba(60,30,0,.3)}
+dialog::backdrop{background:rgba(60,30,0,.45)}
+label{display:block;font-weight:600;margin:10px 0 4px;font-size:.93rem}
+input,textarea{width:100%;font:inherit;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:#fffaf5}
+.modes{display:flex;gap:8px;flex-wrap:wrap}
+.modes label{display:flex;align-items:center;gap:6px;margin:0;border:1px solid var(--line);border-radius:99px;padding:4px 14px;background:var(--soft);font-weight:500}
+.modes input{width:auto}
+.line{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px dashed var(--line)}
+.total{display:flex;justify-content:space-between;font-weight:700;font-size:1.15rem;padding:12px 0;color:var(--or)}
+.actions{display:flex;gap:10px;margin-top:14px}
+.ghost{background:transparent;border:1px solid var(--line);border-radius:12px;padding:12px 18px;font-weight:600}
+.actions .cta{flex:1;border:0;text-align:center}
+.err{color:#d6336c;font-weight:600;min-height:1.4em}
+.ok{text-align:center;padding:10px 0}.ok b{font-size:2rem;color:var(--or);display:block}
+footer{text-align:center;padding:24px;color:var(--mute);border-top:1px solid var(--line);margin-top:40px}
+/* لوحة المالك */
+#admin{display:none;padding-bottom:60px}
+.otabs{display:flex;gap:8px;margin:10px 0 16px}
+.otabs button{background:#fff;border:1px solid var(--line);border-radius:99px;padding:6px 18px}
+.otabs button[aria-pressed=true]{background:var(--or);color:#fff;border-color:var(--or)}
+.order{background:#fff;border:1px solid var(--line);border-radius:20px;padding:16px;margin-bottom:12px;box-shadow:var(--sh)}
+.order.new{border-color:var(--or);border-width:2px}
+.order .top{display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;font-weight:600}
+.st{font-size:.85rem;background:var(--soft);border-radius:99px;padding:2px 12px;color:#c2570a}
+.order ul{margin:8px 0;padding-inline-start:20px}
+.order a{color:var(--or);font-weight:600}
+.btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.btns button{border:1px solid var(--line);background:var(--soft);border-radius:10px;padding:6px 14px;font-weight:600}
+.btns .go{background:var(--or);color:#fff;border-color:var(--or)}
+</style>
+</head>
+<body>
+<div id="shop" class="wrap">
+  <header><div class="logo">🍔 تراك برجر</div><button class="pill" id="openCart">السلة (<span id="cnt">0</span>)</button></header>
+  <section class="hero">
+    <h1>برجر يستحق <em>الانتظار</em> في قلب صنعاء</h1>
+    <p>لحم مشوي على الفحم وبطاطس مقرمشة. اطلب من هنا ويصلنا طلبك فورًا. شارع حدة، صنعاء.</p>
+    <a class="cta" href="#menu">اطلب الآن</a>
+  </section>
+  <h2 id="menu">القائمة</h2>
+  <div class="tabs" id="tabs"></div>
+  <div class="grid" id="grid"></div>
+  <footer>© تراك برجر · <span id="hrs"></span></footer>
+</div>
+<div class="bar" id="bar"><button id="barBtn"><span id="barCnt"></span><span>عرض السلة</span><span id="barTot"></span></button></div>
+
+<dialog id="dlg">
+  <div id="form">
+    <h2>سلة الطلب</h2><div id="lines"></div>
+    <div class="total"><span>المجموع</span><span id="sum"></span></div>
+    <div class="modes">
+      <label><input type="radio" name="mode" value="توصيل" checked> توصيل</label>
+      <label><input type="radio" name="mode" value="استلام"> استلام</label>
+      <label><input type="radio" name="mode" value="جلوس داخل المكان"> جلوس داخل المكان</label>
+      <label><input type="radio" name="mode" value="خدمة السيارات"> خدمة السيارات</label>
+    </div>
+    <label for="nm">الاسم</label><input id="nm" autocomplete="name">
+    <label for="ph">رقم الجوال</label><input id="ph" type="tel" inputmode="tel" autocomplete="tel">
+    <div id="addrBox"><label for="ad">العنوان (للتوصيل)</label><textarea id="ad" rows="2"></textarea></div>
+    <label for="nt">ملاحظات</label><input id="nt">
+    <div class="err" id="err" role="alert"></div>
+    <div class="actions"><button class="ghost" id="close">إغلاق</button><button class="cta" id="send">تأكيد الطلب</button></div>
+  </div>
+  <div id="done" class="ok" hidden><h2>وصلنا طلبك</h2><b id="oid"></b><p>رقم طلبك. سنتواصل معك على جوالك قريبًا.</p><button class="cta" id="again">حسنًا</button></div>
+</dialog>
+
+<div id="admin" class="wrap">
+  <header><div class="logo">لوحة الطلبات</div><button class="pill" id="out" hidden>خروج</button></header>
+  <form id="login" style="max-width:360px">
+    <label for="em">البريد</label><input id="em" type="email" autocomplete="username">
+    <label for="pw">كلمة المرور</label><input id="pw" type="password" autocomplete="current-password">
+    <div class="err" id="lerr" role="alert"></div>
+    <button class="cta" style="border:0;width:100%;margin-top:8px">دخول</button>
+  </form>
+  <div id="board" hidden>
+    <div class="otabs" id="otabs"></div>
+    <div id="orders"></div>
+  </div>
+</div>
+
+<script type="module">
+import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import{getFirestore,collection,addDoc,serverTimestamp,query,orderBy,limit,onSnapshot,doc,updateDoc}from"https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import{getAuth,signInWithEmailAndPassword,signOut,onAuthStateChanged}from"https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+/* ===== 1) الصق هنا إعدادات مشروع Firebase (من README) ===== */
+const firebaseConfig={apiKey:"AIzaSyBGcoybgBZ4aRihP29_nPp6_oRzw1QYJLE",authDomain:"truck-burger-3d190.firebaseapp.com",projectId:"truck-burger-3d190",appId:"1:184670564449:web:1cf68b2b9c2a4b9416ba20"};
+/* ===== 2) بيانات المطعم والقائمة ===== */
+const R={currency:"ريال",hours:"يوميًا حتى الساعة 11:00 مساءً"};
+const MENU=[
+{c:"برجر",n:"تراك كلاسيك",d:"لحم بقري مشوي، جبن شيدر، خس، طماطم، صوص خاص",p:3500},
+{c:"برجر",n:"تشيز دبل",d:"طبقتان من اللحم مع جبن مضاعف ومخلل",p:5000},
+{c:"برجر",n:"سبايسي تراك",d:"لحم حار مع هالبينو وصوص حار",p:4000},
+{c:"برجر",n:"تشيكن كرسبي",d:"صدر دجاج مقرمش مع مايونيز وخس",p:3500},
+{c:"وجبات",n:"وجبة كلاسيك",d:"برجر كلاسيك مع بطاطس ومشروب",p:5000},
+{c:"وجبات",n:"وجبة دبل",d:"تشيز دبل مع بطاطس ومشروب",p:6500},
+{c:"جانبية",n:"بطاطس مقلية",d:"مقرمشة ومتبّلة",p:1500},
+{c:"مشروبات",n:"مشروب غازي",d:"بيبسي أو ميرندا أو سفن أب",p:700},
+{c:"مشروبات",n:"عصير طازج",d:"حسب المتوفر اليوم",p:1500}];
+
+const $=id=>document.getElementById(id);
+const fmt=n=>Number(n).toLocaleString("ar-EG")+" "+R.currency;
+const ready=!!firebaseConfig.projectId;
+const app=ready?initializeApp(firebaseConfig):null;
+const db=ready?getFirestore(app):null, auth=ready?getAuth(app):null;
+$("hrs").textContent=R.hours;
+
+/* ===== واجهة الزبون ===== */
+let cart={},cat="الكل";
+const cats=["الكل",...new Set(MENU.map(m=>m.c))];
+const totals=()=>{let q=0,s=0;MENU.forEach((m,i)=>{const k=cart[i]||0;q+=k;s+=k*m.p});return{q,s}};
+function tabs(){$("tabs").innerHTML="";cats.forEach(c=>{const b=document.createElement("button");b.textContent=c;b.setAttribute("aria-pressed",c===cat);b.onclick=()=>{cat=c;tabs();grid()};$("tabs").appendChild(b)})}
+function stepper(i){const k=cart[i]||0;const w=document.createElement("div");
+  if(!k){w.innerHTML='<button class="add">أضف</button>';w.firstChild.onclick=()=>chg(i,1)}
+  else{w.className="qty";w.innerHTML='<button>−</button><b>'+k.toLocaleString("ar-EG")+'</b><button>+</button>';const b=w.querySelectorAll("button");b[0].onclick=()=>chg(i,-1);b[1].onclick=()=>chg(i,1)}
+  return w}
+function grid(){const g=$("grid");g.innerHTML="";MENU.forEach((m,i)=>{if(cat!=="الكل"&&m.c!==cat)return;
+  const el=document.createElement("article");el.className="card";el.innerHTML="<h3></h3><p></p><div class='row'><span class='price'></span></div>";
+  el.querySelector("h3").textContent=m.n;el.querySelector("p").textContent=m.d;el.querySelector(".price").textContent=fmt(m.p);
+  el.querySelector(".row").appendChild(stepper(i));g.appendChild(el)})}
+function lines(){const b=$("lines");b.innerHTML="";const t=totals();if(!t.q)b.textContent="السلة فارغة.";
+  MENU.forEach((m,i)=>{if(!cart[i])return;const r=document.createElement("div");r.className="line";const s=document.createElement("span");s.textContent=m.n+" — "+fmt(m.p*cart[i]);r.appendChild(s);const st=stepper(i);st.className="qty";if(!st.querySelector("b")){}r.appendChild(st);b.appendChild(r)});$("sum").textContent=fmt(t.s)}
+function chg(i,d){cart[i]=Math.max(0,(cart[i]||0)+d);if(!cart[i])delete cart[i];refresh()}
+function refresh(){const t=totals();$("cnt").textContent=t.q.toLocaleString("ar-EG");$("bar").classList.toggle("on",t.q>0);$("barCnt").textContent=t.q.toLocaleString("ar-EG")+" صنف";$("barTot").textContent=fmt(t.s);grid();lines()}
+const mode=()=>document.querySelector("input[name=mode]:checked").value;
+document.querySelectorAll("input[name=mode]").forEach(r=>r.onchange=()=>{$("addrBox").style.display=mode()==="توصيل"?"block":"none"});
+const open=()=>{$("form").hidden=false;$("done").hidden=true;$("err").textContent="";lines();$("dlg").showModal()};
+$("openCart").onclick=open;$("barBtn").onclick=open;$("close").onclick=()=>$("dlg").close();$("again").onclick=()=>$("dlg").close();
+$("send").onclick=async()=>{
+  const t=totals();
+  if(!t.q)return $("err").textContent="أضف صنفًا واحدًا على الأقل.";
+  if(!$("nm").value.trim()||!$("ph").value.trim())return $("err").textContent="اكتب اسمك ورقم جوالك.";
+  if(mode()==="توصيل"&&!$("ad").value.trim())return $("err").textContent="اكتب عنوان التوصيل.";
+  if(!ready)return $("err").textContent="الموقع لم يُربط بقاعدة البيانات بعد (راجع README).";
+  $("send").disabled=true;
+  try{
+    const items=MENU.map((m,i)=>cart[i]?{name:m.n,qty:cart[i],price:m.p}:null).filter(Boolean);
+    const ref=await addDoc(collection(db,"orders"),{items,total:t.s,mode:mode(),name:$("nm").value.trim(),phone:$("ph").value.trim(),address:mode()==="توصيل"?$("ad").value.trim():"",note:$("nt").value.trim(),status:"new",createdAt:serverTimestamp()});
+    $("oid").textContent="#"+ref.id.slice(0,5).toUpperCase();$("form").hidden=true;$("done").hidden=false;cart={};refresh();
+  }catch(e){$("err").textContent="تعذّر إرسال الطلب، حاول مرة أخرى."}
+  $("send").disabled=false;
+};
+tabs();refresh();
+
+/* ===== لوحة المالك (الرابط: ...#admin) ===== */
+const ST={new:"جديد",prep:"قيد التحضير",ready:"جاهز",done:"تم التسليم",cancel:"ملغي"};
+const NEXT={new:["prep","ابدأ التحضير"],prep:["ready","جاهز"],ready:["done","تم التسليم"]};
+let all=[],flt="active",first=true,unsub=null;
+function beep(){try{const c=new AudioContext(),o=c.createOscillator();o.frequency.value=880;o.connect(c.destination);o.start();o.stop(c.currentTime+.35)}catch(e){}}
+function ftabs(){$("otabs").innerHTML="";[["active","النشطة"],["all","الكل"]].forEach(([k,l])=>{const b=document.createElement("button");b.textContent=l;b.setAttribute("aria-pressed",k===flt);b.onclick=()=>{flt=k;ftabs();draw()};$("otabs").appendChild(b)})}
+function draw(){
+  const box=$("orders");box.innerHTML="";
+  const list=all.filter(o=>flt==="all"||["new","prep","ready"].includes(o.status));
+  if(!list.length)box.textContent="لا توجد طلبات.";
+  list.forEach(o=>{
+    const el=document.createElement("div");el.className="order"+(o.status==="new"?" new":"");
+    const when=o.createdAt?o.createdAt.toDate().toLocaleString("ar-EG"):"";
+    el.innerHTML='<div class="top"><span></span><span class="st"></span></div><div class="meta"></div><ul></ul><div class="tot"></div><div class="btns"></div>';
+    el.querySelector(".top span").textContent="#"+o.id.slice(0,5).toUpperCase()+" · "+when;
+    el.querySelector(".st").textContent=ST[o.status]||o.status;
+    const m=el.querySelector(".meta");m.textContent=o.name+" · "+o.mode+(o.address?" · "+o.address:"")+" · ";
+    const a=document.createElement("a");a.href="tel:"+o.phone;a.textContent=o.phone;m.appendChild(a);
+    if(o.note){const n=document.createElement("div");n.textContent="ملاحظة: "+o.note;m.appendChild(n)}
+    const ul=el.querySelector("ul");(o.items||[]).forEach(i=>{const li=document.createElement("li");li.textContent=i.name+" × "+i.qty;ul.appendChild(li)});
+    el.querySelector(".tot").textContent="المجموع: "+fmt(o.total);
+    const bt=el.querySelector(".btns");
+    if(NEXT[o.status]){const b=document.createElement("button");b.className="go";b.textContent=NEXT[o.status][1];b.onclick=()=>updateDoc(doc(db,"orders",o.id),{status:NEXT[o.status][0]});bt.appendChild(b)}
+    if(["new","prep","ready"].includes(o.status)){const c=document.createElement("button");c.textContent="إلغاء";c.onclick=()=>confirm("إلغاء الطلب؟")&&updateDoc(doc(db,"orders",o.id),{status:"cancel"});bt.appendChild(c)}
+    box.appendChild(el);
+  });
+}
+function watch(){
+  if(unsub)return;
+  unsub=onSnapshot(query(collection(db,"orders"),orderBy("createdAt","desc"),limit(100)),s=>{
+    all=s.docs.map(d=>({id:d.id,...d.data()}));
+    if(!first&&s.docChanges().some(c=>c.type==="added"&&!c.doc.metadata.hasPendingWrites)){beep();document.title="🔔 طلب جديد!"}
+    first=false;draw();
+  },()=>{$("board").hidden=true;$("login").hidden=false;$("lerr").textContent="هذا الحساب غير مصرّح له بعرض الطلبات."});
+}
+function route(){const a=location.hash==="#admin";$("admin").style.display=a?"block":"none";$("shop").style.display=a?"none":"block";$("bar").style.display=a?"none":"";if(!a)document.title="تراك برجر - Truck Burger"}
+addEventListener("hashchange",route);route();
+if(ready){
+  onAuthStateChanged(auth,u=>{$("login").hidden=!!u;$("board").hidden=!u;$("out").hidden=!u;if(u){ftabs();watch()}else{if(unsub){unsub();unsub=null}first=true}});
+  $("login").onsubmit=async e=>{e.preventDefault();$("lerr").textContent="";try{await signInWithEmailAndPassword(auth,$("em").value.trim(),$("pw").value)}catch(x){$("lerr").textContent="البريد أو كلمة المرور غير صحيحة."}};
+  $("out").onclick=()=>signOut(auth);
+}else{$("lerr").textContent="لم تُضبط إعدادات Firebase بعد (راجع README)."}
+</script>
+</body>
+</html>
